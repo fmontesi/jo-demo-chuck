@@ -1,0 +1,50 @@
+<html>
+<head>
+	<script type="text/javascript"
+		src="https://cdn.rawgit.com/fmontesi/jo/master/lib/jo.js"></script>
+	<script
+		src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+		integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E="
+		crossorigin="anonymous"></script>
+</head>
+<body>
+	<p>
+		<input type="text" id="jokeQuery" value="Computer" />
+		<button id="getJokeBtn" type="button">Get me a Chuck joke!</button>
+	</p>
+	<p id="display"></p>
+	<p>
+		<button id="postJokeBtn" type="button">Share this wisdom</button>
+	</p>
+	<p id="telegraphDisplay"></p>
+
+	<script type="text/javascript">
+		$(document).ready( () => {
+			$("#getJokeBtn").click( () => {
+				$("#display").html( "Work in progress..." );
+				Jo("ChuckNorris").search( { query: $("#jokeQuery").val() } )
+					.then( response => {
+						// Pick a random joke
+						$("#display").html(
+							( Array.isArray( response.result ) )
+							? response.result[ Math.floor(Math.random()*response.result.length) ].value
+							: "This is not a joke"
+						);
+					} ).catch( JoHelp.parseError ).catch( alert );
+			} );
+
+			$("#postJokeBtn").click( () => {
+				$("#telegraphDisplay").html( "Work in progress..." );
+				Jo("TelegraphPoster").createPage( {
+					title: "Chuck Norris Wisdom",
+					content: $("#display").html()
+				} ).then( response => {
+					$("#telegraphDisplay").html(
+						`Wisdom shared at <a href=\"${response.$}\" target=\"_new\">${response.$}</a>`
+					);
+				} ).catch( JoHelp.parseError ).catch( alert );
+			} );
+		} );
+	</script>
+</body>
+</html>
