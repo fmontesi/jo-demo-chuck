@@ -1,0 +1,11 @@
+# Heroku does not respect the EXPOSE directive, hence the $PORT environment
+# variable needs to be passed on to the HTTP endpoint (Jolie's Leonardo)
+
+FROM jolielang/jolie
+
+COPY app /app
+COPY web /web
+
+WORKDIR /app
+
+CMD jolie -C Location_Leonardo=\"socket://localhost:$PORT/\" main.ol
