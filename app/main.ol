@@ -28,7 +28,10 @@ Protocol: https {
 RequestResponse: createAccount, createPage
 }
 
-type CreatePageRequest:void { .title:string .content:string }
+type CreatePageRequest:void {
+	.title:string
+	.content:string
+}
 
 interface TelegraphPosterIface {
 RequestResponse: createPage(CreatePageRequest)(string) throws TelegraphError(string)
