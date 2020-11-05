@@ -17,59 +17,55 @@ Jolie:
 include "string_utils.iol"
 
 outputPort Telegraph {
-Location: "socket://api.telegra.ph:443/"
-Protocol: https {
-	.format = "json";
-	.osc.createAccount.alias =
-		"createAccount?short_name=%{short_name}";
-	.osc.createPage.alias =
-		"createPage?access_token=%{access_token}&title=%{title}&content=[\"%{content}\"]"
-}
-RequestResponse: createAccount, createPage
+	Location: "socket://api.telegra.ph:443/"
+	Protocol: https {
+		format = "json"
+		osc.createAccount.alias =
+			"createAccount?short_name=%{short_name}"
+		osc.createPage.alias =
+			"createPage?access_token=%{access_token}&title=%{title}&content=[\"%{content}\"]"
+	}
+	RequestResponse: createAccount, createPage
 }
 
-type CreatePageRequest:void {
-	.title:string
-	.content:string
-}
+type CreatePageRequest:void { title:string content:string }
 
 interface TelegraphPosterIface {
 RequestResponse: createPage(CreatePageRequest)(string) throws TelegraphError(string)
 }
 
 service TelegraphPoster {
-Interfaces: TelegraphPosterIface
-main {
-	createPage( postRequest )( postUrl ) {
-		short_name = new;
-		replaceAll@StringUtils( short_name { .regex = "-", .replacement = "" } )( short_name );
-		createAccount@Telegraph( { .short_name = short_name } )( response );
-		if ( !response.ok ) throw( TelegraphError, response.error );
-		access_token = response.result.access_token;
-		createPage@Telegraph( {
-			.access_token = access_token,
-			.title = postRequest.title,
-			.content = postRequest.content
-		} )( response );
-		if ( !response.ok ) throw( TelegraphError, response.error );
-		postUrl = response.result.url
+	Interfaces: TelegraphPosterIface
+	main {
+		createPage( postRequest )( postUrl ) {
+			short_name = new
+			replaceAll@StringUtils( short_name { regex = "-", replacement = "" } )( short_name )
+			createAccount@Telegraph( { short_name = short_name } )( response )
+			if ( !response.ok ) throw( TelegraphError, response.error )
+			access_token = response.result.access_token
+			createPage@Telegraph( {
+				access_token = access_token,
+				title = postRequest.title,
+				content = postRequest.content
+			} )( response )
+			if ( !response.ok ) throw( TelegraphError, response.error )
+			postUrl = response.result.url
+		}
 	}
-}
 }
 
 main
 {
-	with( config ) {
-		.wwwDir = "../web";
-		with( .redirection[0] ) {
-			.name = "ChuckNorris";
-			.binding -> Chuck
-		};
-		with( .redirection[1] ) {
-			.name = "TelegraphPoster";
-			.binding.location = TelegraphPoster.location
+	config@LeonardoAdmin( {
+		wwwDir = "../web"
+		redirection[0] << {
+			name = "ChuckNorris"
+			binding -> Chuck
 		}
-	};
-	config@LeonardoAdmin( config )();
+		redirection[1] << {
+			name = "TelegraphPoster"
+			binding.location = TelegraphPoster.location
+		}
+	} )()
 	linkIn( Shutdown )
 }
